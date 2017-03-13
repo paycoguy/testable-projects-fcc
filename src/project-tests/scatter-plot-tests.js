@@ -1,6 +1,39 @@
 import $ from 'jquery';
 import { getToolTipStatus, getRandomIndex } from '../assets/globalD3Tests';
 
+const SORT_ORDER = {
+  ASCENDING:1,
+  DESCENDING:2
+}
+
+/**
+Returns the sort order of an array of values.  
+Returns -1 if the array of values aren't sorted.
+**/
+function getSortOrder(values){
+  if(values.length < 2){
+    //must have at least 2 values to determine sort order
+    return -1;
+  }
+  //get the prelim sort order from the first 2 values
+  var sortOrder;
+  if(values[0]<values[1]){
+    sortOrder = SORT_ORDER.ASCENDING;
+  }else{
+    sortOrder = SORT_ORDER.DESCENDING;    
+  }
+  //verify all values conform to the sort order
+  for(var i=2; i < values.length; i++){
+    if(sortOrder == SORT_ORDER.ASCENDING && values[i-1]>values[i]){
+        return -1;
+    }else if(sortOrder == SORT_ORDER.DESCENDING && values[i-1]<values[i]){
+        return -1;
+    }
+  }
+  //all values conform to sort order
+  return sortOrder;
+}
+
 export default function createScatterPlotTests() {
 
     describe('#ScatterPlotTests', function() {
@@ -75,19 +108,68 @@ export default function createScatterPlotTests() {
             });
 
             it('8. The data-yvalue and its corresponding dot should align with the corresponding point/value on the y-axis.', function() {
+                //first try didn't work
+                //sort y axis values by y locations in ascending order
+                //sort dots by y locations in ascending order
+                //get sort order of y axis values
+                ///get sort order of dot y  values
+                //check if they are the same
+                
+                
+                
+  
+                
+                //get axis order for y axis
+                const yAxisTickLabels = document.querySelectorAll("#y-axis .tick");
+                var yAxisValues = [];
+                //extract y axis values into array
+                for(var i=0; i < yAxisTickLabels.length; i++){
+                  yAxisValues.push(yAxisTickLabels[i].textContent)
+                }
+                console.log("yAxisValues", yAxisValues);
+                const yAxisOrder = getSortOrder(yAxisValues);
+                console.log("yAxisOrder", yAxisOrder)
+                FCC_Global.assert.notStrictEqual(yAxisOrder, -1, 'Y axis labels are not sorted');
+                
                 const dotsCollection = document.getElementsByClassName('dot');
                 //convert to array
                 const dots = [].slice.call(dotsCollection);
-                FCC_Global.assert.isAbove(dots.length, 0, 'there are no elements with the class of "dot" ');
-                //sort the dots based on yvalue in ascending order
-                const sortedDots = dots.sort(function(a, b) {
-                    return new Date(a.getAttribute("data-yvalue")) - new Date(b.getAttribute("data-yvalue"));
-                });
+                FCC_Global.assert.isAbove(dots.length, 0, 'There are no elements with the class of "dot" ');
 
-                //check to see if the y locations of the new sorted array are in ascending order
+                //sort the dots based on yvalue according to the y axis order
+                var sortedDots = dots.sort(function(a, b) {
+                    if(yAxisOrder == SORT_ORDER.ASCENDING){
+                      return new Date(a.getAttribute("data-yvalue")) - new Date(b.getAttribute("data-yvalue"));
+                    }else{
+                      return new Date(b.getAttribute("data-yvalue")) - new Date(a.getAttribute("data-yvalue"));
+                    }
+                });
+                console.log("sortedDots",sortedDots);
+                
+                //check to see if the y location of the new sorted array are in the same y axis order
                 for (var i = 0; i < sortedDots.length - 1; ++i) {
-                    FCC_Global.assert.isAtMost(+sortedDots[i].cy.baseVal.value, +sortedDots[i + 1].cy.baseVal.value, "y values don't line up with y locations ");
+                  console.log(sortedDots[i].cy.baseVal.value);
+                  console.log(sortedDots[i+1].cy.baseVal.value);
+                  if(yAxisOrder == SORT_ORDER.ASCENDING){
+                    FCC_Global.assert.isAtMost(+sortedDots[i+1].cy.baseVal.value, +sortedDots[i].cy.baseVal.value, "Y values don't line up with y locations ");
+                  }else{
+                    FCC_Global.assert.isAtMost(+sortedDots[i].cy.baseVal.value, +sortedDots[i+1].cy.baseVal.value, "Y values don't line up with y locations ");
+                  }
                 }
+                
+                // const dotsCollection = document.getElementsByClassName('dot');
+                // //convert to array
+                // const dots = [].slice.call(dotsCollection);
+                // FCC_Global.assert.isAbove(dots.length, 0, 'there are no elements with the class of "dot" ');
+                // //sort the dots based on yvalue in ascending order
+                // const sortedDots = dots.sort(function(a, b) {
+                //     return new Date(a.getAttribute("data-yvalue")) - new Date(b.getAttribute("data-yvalue"));
+                // });
+                // 
+                // //check to see if the y locations of the new sorted array are in ascending order
+                // for (var i = 0; i < sortedDots.length - 1; ++i) {
+                //     FCC_Global.assert.isAtMost(+sortedDots[i].cy.baseVal.value, +sortedDots[i + 1].cy.baseVal.value, "y values don't line up with y locations ");
+                // }
             });
 
             it('9. I can see multiple tick labels on the y-axis with "%M:%S" time  format.', function() {
